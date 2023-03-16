@@ -1,37 +1,51 @@
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class XmlRpcClientExample {
+public class FileProcessor {
+    private static final int THREAD_POOL_SIZE = 10;
+
     public static void main(String[] args) {
-        String xmlRpcEndpoint = "http://your_server_url_here/rpc";
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<methodCall>" +
-                "<methodName>myMethod</methodName>" +
-                "<params>" +
-                "<param><value><string>param1</string></value></param>" +
-                "<param><value><int>2</int></value></param>" +
-                "</params>" +
-                "</methodCall>";
+        ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
-        try {
-            String response = sendXmlRpcRequest(xmlRpcEndpoint, xml);
-            System.out.println("Response: " + response);
-        } catch (Exception e) {
-            e.printStackTrace();
+        // Set the directory path where the files are located
+        String directoryPath = "/path/to/files";
+
+        // Create a file filter to only include XML files
+        FileFilter xmlFileFilter = new FileFilter() {
+            public boolean accept(File file) {
+                return file.isFile() && file.getName().toLowerCase().endsWith(".xml");
+            }
+        };
+
+        // Get all the XML files in the directory
+        File directory = new File(directoryPath);
+        File[] xmlFiles = directory.listFiles(xmlFileFilter);
+
+        // Loop through each XML file and read its contents
+        for (File xmlFile : xmlFiles) {
+            executor.execute(() -> {
+                try {
+                    // Use NIO to read the file contents
+                    Path path = Paths.get(xmlFile.getAbsolutePath());
+                    String fileContent = new String(Files.readAllBytes(path));
+
+                    // Process the XML file content here
+                    // ...
+
+                    System.out.println("Processed file: " + xmlFile.getName());
+                } catch (Exception e) {
+                    System.err.println("Error processing file: " + xmlFile.getName());
+                }
+            });
         }
-    }
 
-    public static String sendXmlRpcRequest(String url, String xml) throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Content-Type", "text/xml; charset=UTF-8")
-                .POST(HttpRequest.BodyPublishers.ofString(xml))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
+        executor.shutdown();
     }
 }
