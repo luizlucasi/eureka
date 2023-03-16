@@ -1,51 +1,25 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+Sure, here is an example of a four-slide presentation you can use as a basis to create your own slides in Canva:
 
-public class FileProcessor {
-    private static final int THREAD_POOL_SIZE = 10;
+Slide 1: Introduction
 
-    public static void main(String[] args) {
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+Title: "Development of Data Sending via RPC"
+Description: Present the development's goal and contextualize the importance of sending data via RPC.
+[Image of a computer screen with a data sending animation]
 
-        // Set the directory path where the files are located
-        String directoryPath = "/path/to/files";
+Slide 2: Results
 
-        // Create a file filter to only include XML files
-        FileFilter xmlFileFilter = new FileFilter() {
-            public boolean accept(File file) {
-                return file.isFile() && file.getName().toLowerCase().endsWith(".xml");
-            }
-        };
+Title: "Sprint Results"
+Description: Present the main functionalities and improvements implemented during the sprint, highlighting the value added to the project.
+[Image of a chart or table showing the results achieved during the sprint]
 
-        // Get all the XML files in the directory
-        File directory = new File(directoryPath);
-        File[] xmlFiles = directory.listFiles(xmlFileFilter);
+Slide 3: Challenges
 
-        // Loop through each XML file and read its contents
-        for (File xmlFile : xmlFiles) {
-            executor.execute(() -> {
-                try {
-                    // Use NIO to read the file contents
-                    Path path = Paths.get(xmlFile.getAbsolutePath());
-                    String fileContent = new String(Files.readAllBytes(path));
+Title: "Challenges Faced"
+Description: Identify the main challenges encountered during the sprint and describe how they were overcome.
+[Image of a team working together to overcome a challenge]
 
-                    // Process the XML file content here
-                    // ...
+Slide 4: Next Steps
 
-                    System.out.println("Processed file: " + xmlFile.getName());
-                } catch (Exception e) {
-                    System.err.println("Error processing file: " + xmlFile.getName());
-                }
-            });
-        }
-
-        executor.shutdown();
-    }
-}
+Title: "Next Steps"
+Description: Present the next stages of the project and explain how the team plans to approach them.
+[Image of a path or trajectory with an arrow pointing towards the future]
