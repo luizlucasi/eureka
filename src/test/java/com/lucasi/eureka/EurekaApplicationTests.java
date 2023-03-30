@@ -187,5 +187,72 @@ private static Object parseValue(ValueType valueType) {
     }
 }
 
+@XmlRootElement(name = "methodResponse")
+@XmlAccessorType(XmlAccessType.FIELD)
+public class MethodResponse {
+    
+    @XmlElement(name = "params")
+    private Params params;
+    
+    @XmlElement(name = "fault")
+    private Fault fault;
+    
+    public Params getParams() {
+        return params;
+    }
+    
+    public void setParams(Params params) {
+        this.params = params;
+    }
+    
+    public Fault getFault() {
+        return fault;
+    }
+    
+    public void setFault(Fault fault) {
+        this.fault = fault;
+    }
+    
+    public static class Params {
+        @XmlElement(name = "param")
+        private Param param;
+        
+        public Param getParam() {
+            return param;
+        }
+        
+        public void setParam(Param param) {
+            this.param = param;
+        }
+    }
+    
+    public static class Fault {
+        @XmlElement(name = "value")
+        private Value value;
+        
+        public Value getValue() {
+            return value;
+        }
+        
+        public void setValue(Value value) {
+            this.value = value;
+        }
+    }
+    
+    public static class Param {
+        @XmlElement(name = "value")
+        private Value value;
+        
+        public Value getValue() {
+            return value;
+        }
+        
+        public void setValue(Value value) {
+            this.value = value;
+        }
+    }
+}
+
+
 
 
