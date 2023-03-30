@@ -318,7 +318,6 @@ public class MethodResponse {
         }
     }
 }
-
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ValueType", propOrder = {
     "intVal",
@@ -358,10 +357,20 @@ public class Value {
     @XmlElement(name = "array")
     protected Array arrayVal;
     
-    @XmlElement(name = "struct")
-    protected Struct structVal;
+    @XmlTransient
+    protected Map<String, Value> structVal;
 
     // getters and setters for each field
+    
+    public void setStructVal(Map<String, Value> structVal) {
+        this.structVal = structVal;
+    }
+
+    public Map<String, Value> getStructVal() {
+        return structVal;
+    }
 }
+
+
 
 
