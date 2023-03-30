@@ -26,5 +26,22 @@ public class ValueType {
 
 }
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "ParamType", propOrder = {
+    "value"
+})
+public class ParamType {
+
+    @XmlElement(required = true)
+    protected ValueType value;
+
+    public ValueType getValue() {
+        return value;
+    }
+
+    public void setValue(ValueType value) {
+        this.value = value;
+    }
+
 
 
