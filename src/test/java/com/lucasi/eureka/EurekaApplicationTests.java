@@ -121,3 +121,71 @@
  </xsd:schema>
 }
 
+public static XmlRpcResponse unmarshallXmlRpc(String xml) throws JAXBException, XMLStreamException {
+    JAXBContext context = JAXBContext.newInstance(MethodResponse.class);
+    Unmarshaller unmarshaller = context.createUnmarshaller();
+    XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+    try (StringReader stringReader = new StringReader(xml);
+         XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(stringReader)) {
+        MethodResponse methodResponse = unmarshaller.unmarshal(reader, MethodResponse.class).getValue();
+        if (methodResponse.getParams() != null) {
+            List<Object> params = new ArrayList<>();
+            for (ParamType paramType : methodResponse.getParams().getParam()) {
+                ValueType valueType = paramType.getValue();
+                Object value = parseValue(valueType);
+                params.add(value);
+            }
+            return new XmlRpcResponse(params);
+        } else if (methodResponse.getFault() != null) {
+            Map<String, Object> fault = new HashMap<>();
+            for (MemberType memberType : methodResponse.getFault().getValue().getStruct().getMember()) {
+                String key = memberType.getName();
+                ValueType valueType = memberType.getValue();
+                Object value = parseValue(valueType);
+                fault.put(key, value);
+            }
+            return new XmlRpcResponse(fault);
+        } else {
+            throw new IllegalArgumentException("Unknown response");
+        }
+    }
+}
+
+private static Object parseValue(ValueType valueType) {
+    if (valueType == null) {
+        return null;
+    }
+    if (valueType.getInt() != null) {
+        return valueType.getInt();
+    } else if (valueType.getString() != null) {
+        return valueType.getString();
+    } else if (valueType.getDouble() != null) {
+        return valueType.getDouble();
+    } else if (valueType.getBase64() != null) {
+        return valueType.getBase64();
+    } else if (valueType.getArray() != null) {
+        List<Object> list = new ArrayList<>();
+        for (ValueType value : valueType.getArray().getData().getValue()) {
+            list.add(parseValue(value));
+        }
+        return list;
+    } else if (valueType.getStruct() != null) {
+        Map<String, Object> map = new HashMap<>();
+        for (MemberType memberType : valueType.getStruct().getMember()) {
+            String key = memberType.getName();
+            ValueType value = memberType.getValue();
+            Object parsedValue = parseValue(value);
+            map.put(key, parsedValue);
+        }
+        return map;
+    } else if (valueType.getBoolean() != null) {
+        return valueType.getBoolean();
+    } else if (valueType.getDateTimeIso8601() != null) {
+        return valueType.getDateTimeIso8601();
+    } else {
+        throw new IllegalArgumentException("Unknown value type");
+    }
+}
+
+
+
