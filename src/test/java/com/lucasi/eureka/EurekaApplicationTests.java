@@ -100,5 +100,64 @@ public class Fault {
         }
     }
 }
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "ValueType", propOrder = {
+    "content"
+})
+public class ValueType {
+
+    @XmlMixed
+    protected List<Object> content;
+
+    @XmlAttribute(name = "type")
+    protected String type;
+
+    public List<Object> getContent() {
+        if (content == null) {
+            content = new ArrayList<>();
+        }
+        return this.content;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String value) {
+        this.type = value;
+    }
+
+    public String getString() {
+        StringBuilder sb = new StringBuilder();
+        for (Object obj : getContent()) {
+            sb.append(obj.toString());
+        }
+        return sb.toString();
+    }
+
+    public boolean getBoolean() {
+        return Boolean.parseBoolean(getString());
+    }
+
+    public int getInt() {
+        return Integer.parseInt(getString());
+    }
+
+    public double getDouble() {
+        return Double.parseDouble(getString());
+    }
+
+    public byte[] getBase64() {
+        return Base64.getDecoder().decode(getString());
+    }
+
+    public Date getDateTimeIso8601() throws ParseException {
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HH:mm:ss");
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return format.parse(getString());
+    }
+}
+
+
 
 
