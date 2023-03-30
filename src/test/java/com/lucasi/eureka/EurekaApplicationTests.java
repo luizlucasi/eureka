@@ -44,4 +44,22 @@ public class ParamType {
     }
 
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "MemberType", propOrder = {
+"name",
+"value"
+})
+public class MemberType {
+
+typescript
+Copy code
+@XmlElement(required = true)
+protected String name;
+@XmlElement(required = true)
+protected ValueType value;
+
+// getters and setters
+}
+
+
 
