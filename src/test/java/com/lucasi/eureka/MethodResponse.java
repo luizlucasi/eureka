@@ -4,14 +4,31 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlRootElement(name = "methodResponse")
-public class MethodResponse {
+public class ValueType {
 
-    @XmlElement(name = "params")
-    private Params params;
+    @XmlElement(name = "int")
+    private Integer intValue;
 
-    @XmlElement(name = "fault")
-    private Fault fault;
+    @XmlElement(name = "boolean")
+    private Boolean booleanValue;
 
-    // getters and setters
+    @XmlElement(name = "string")
+    private String stringValue;
+
+    @XmlElement(name = "double")
+    private Double doubleValue;
+
+    @XmlElement(name = "dateTime.iso8601")
+    @XmlJavaTypeAdapter(value = DateTimeAdapter.class)
+    private Date dateValue;
+
+    @XmlElement(name = "base64")
+    private byte[] base64Value;
+
+    @XmlElement(name = "array")
+    private Array arrayValue;
+
+    @XmlElement(name = "struct")
+    private Struct structValue;
+
 }
