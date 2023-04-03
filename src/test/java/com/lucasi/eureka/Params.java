@@ -30,4 +30,11 @@ public class MemberType {
     }
 
     // getters and setters
+    
+    @XmlAccessorType(XmlAccessType.FIELD)
+@XmlSeeAlso({Array.class, Struct.class})
+public interface XmlRpcValue {
+    // empty interface
+}
+
 }
