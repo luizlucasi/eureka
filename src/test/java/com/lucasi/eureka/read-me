@@ -1,2 +1,180 @@
 
-@Test
+package com.example.demo;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.util.*;
+
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "methodResponse")
+public class XmlRpcResponse<T> {
+
+    @XmlElement
+    private Fault fault;
+
+    @XmlElement
+    private Params<T> params;
+
+    public T getValue() {
+        if (fault != null) {
+            return (T) fault.value.getValue();
+        } else if (params != null) {
+            return params.getValue();
+        } else {
+            throw new XmlRpcException("Invalid XML-RPC response: missing <params> or <fault> element");
+        }
+    }
+
+    private static class Params<T> {
+        @XmlElement
+        private Param<T> param;
+
+        public T getValue() {
+            return param.getValue();
+        }
+    }
+
+    private static class Param<T> {
+        @XmlElement
+        private Value<T> value;
+
+        public T getValue() {
+            return value.getValue();
+        }
+    }
+
+    private static class Value<T> {
+        @XmlElement(name = "string")
+        private String stringValue;
+
+        @XmlElement(name = "int")
+        private Integer intValue;
+
+        @XmlElement(name = "i4")
+        private Integer i4Value;
+
+        @XmlElement(name = "boolean")
+        private Boolean booleanValue;
+
+        @XmlElement(name = "struct")
+        private Struct structValue;
+
+        @XmlElement(name = "array")
+        private Array<T> arrayValue;
+
+        public T getValue() {
+            if (stringValue != null) {
+                return (T) stringValue;
+            } else if (intValue != null) {
+                return (T) intValue;
+            } else if (i4Value != null) {
+                return (T) i4Value;
+            } else if (booleanValue != null) {
+                return (T) booleanValue;
+            } else if (structValue != null) {
+
+                List<Map.Entry<?, ?>> entries = new ArrayList<>();
+                for (Member member : structValue.members) {
+                    entries.add(new AbstractMap.SimpleEntry<>(member.name, member.value.getValue()));
+                }
+                return (T) entries.toArray(new Map.Entry<?, ?>[0]);
+            } else if (arrayValue != null) {
+                return (T) arrayValue.data.getValues();
+            } else {
+                throw new XmlRpcException("Invalid XML-RPC response: missing value element");
+            }
+        }
+    }
+
+    public static class Struct {
+
+        public Struct() {
+            // Construtor vazio
+        }
+
+        @XmlElement(name = "member")
+        private Member[] members;
+
+        public Object getValue(String name) {
+            for (Member member : members) {
+                if (member.name.equals(name)) {
+                    return member.value.getValue();
+                }
+            }
+            throw new XmlRpcException("Invalid XML-RPC response: missing value for member " + name);
+        }
+    }
+
+    private static class Member {
+        @XmlElement
+        private String name;
+
+        @XmlElement
+        private Value<Object> value;
+    }
+
+    private static class Array<T> {
+        @XmlElement(name = "data")
+        private Data<T> data;
+
+
+        public Object[] getValues() {
+            Object[] result = new Object[data.values.length];
+            for (int i = 0; i < data.values.length; i++) {
+                result[i] = data.values[i].getValue();
+            }
+            return result;
+        }
+    }
+
+    private static class Data<T> {
+        @XmlElement(name = "value")
+        private Value<T>[] values;
+
+        public T[] getValues() {
+            T[] result = (T[]) new Object[values.length];
+            for (int i = 0; i < values.length; i++) {
+                result[i] = values[i].getValue();
+            }
+            return result;
+        }
+    }
+
+    private static class Fault {
+        @XmlElement(name = "value")
+        private Value<Struct> value;
+
+        public int getCode() {
+            return (int) value.getValue().getValue("faultCode");
+        }
+
+        public String getMessage() {
+            return (String) value.getValue().getValue("faultString");
+        }
+    }
+
+    public static class XmlRpcException extends RuntimeException {
+        public XmlRpcException(String message) {
+            super(message);
+        }
+    }
+
+    public static class XmlRpcFaultException extends XmlRpcException {
+        private final Fault fault;
+
+        public XmlRpcFaultException(Fault fault) {
+            super(fault.getMessage());
+            this.fault = fault;
+        }
+
+        public int getCode() {
+            return fault.getCode();
+        }
+
+        public String getMessage() {
+            return fault.getMessage();
+        }
+    }
+}
