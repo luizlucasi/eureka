@@ -1,180 +1,72 @@
 
-package com.example.demo;
+	@Test
+	public void testStringValue() throws Exception {
+		String xml = "<methodResponse><params><param><value><string>Hello, world!</string></value></param></params></methodResponse>";
+		JAXBContext context = JAXBContext.newInstance(XmlRpcResponse.class);
+		Unmarshaller unmarshaller = context.createUnmarshaller();
+		XmlRpcResponse<String> response = (XmlRpcResponse<String>) unmarshaller.unmarshal(new StringReader(xml));
+		assertEquals("Hello, world!", response.getValue());
+	}
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import java.util.*;
+	@Test
+	public void testIntValue() throws Exception {
+		String xml = "<methodResponse><params><param><value><int>42</int></value></param></params></methodResponse>";
+		JAXBContext context = JAXBContext.newInstance(XmlRpcResponse.class);
+		Unmarshaller unmarshaller = context.createUnmarshaller();
+		XmlRpcResponse<Integer> response = (XmlRpcResponse<Integer>) unmarshaller.unmarshal(new StringReader(xml));
+		assertEquals(42, response.getValue());
+	}
 
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlRootElement(name = "methodResponse")
-public class XmlRpcResponse<T> {
+	@Test
+	public void testBooleanValue() throws Exception {
+		String xml = "<methodResponse><params><param><value><boolean>1</boolean></value></param></params></methodResponse>";
+		JAXBContext context = JAXBContext.newInstance(XmlRpcResponse.class);
+		Unmarshaller unmarshaller = context.createUnmarshaller();
+		XmlRpcResponse<Boolean> response = (XmlRpcResponse<Boolean>) unmarshaller.unmarshal(new StringReader(xml));
+		assertTrue(response.getValue());
+	}
 
-    @XmlElement
-    private Fault fault;
+	@Test
+	public void testStructValue() throws Exception {
+		String xml = "<methodResponse><params><param><value><struct><member><name>foo</name><value><string>bar</string></value></member></struct></value></param></params></methodResponse>";
+		JAXBContext context = JAXBContext.newInstance(XmlRpcResponse.class);
+		Unmarshaller unmarshaller = context.createUnmarshaller();
+		XmlRpcResponse<Map.Entry<?, ?>[]> response = (XmlRpcResponse<Map.Entry<?, ?>[]>) unmarshaller.unmarshal(new StringReader(xml));
+		Map<String, String> map = Arrays.stream(response.getValue())
+				.collect(Collectors.toMap(
+						entry -> entry.getKey().toString(),
+						entry -> entry.getValue().toString()
+				));
+		assertEquals("bar", map.get("foo"));
+	}
 
-    @XmlElement
-    private Params<T> params;
+	@Test
+	public void testArrayValue() throws Exception {
+		String xml = "<methodResponse><params><param><value><array><data><value><string>foo</string></value><value><string>bar</string></value></data></array></value></param></params></methodResponse>";
+		JAXBContext context = JAXBContext.newInstance(XmlRpcResponse.class);
+		Unmarshaller unmarshaller = context.createUnmarshaller();
+		XmlRpcResponse<String[]> response = (XmlRpcResponse<String[]>) unmarshaller.unmarshal(new StringReader(xml));
+		String[] expected = {"foo", "bar"};
+		Object[] result = response.getValue();
+		String[] stringResult = Arrays.stream(result).map(Object::toString).toArray(String[]::new);
 
-    public T getValue() {
-        if (fault != null) {
-            return (T) fault.value.getValue();
-        } else if (params != null) {
-            return params.getValue();
-        } else {
-            throw new XmlRpcException("Invalid XML-RPC response: missing <params> or <fault> element");
-        }
-    }
+		assertArrayEquals(expected, stringResult);
 
-    private static class Params<T> {
-        @XmlElement
-        private Param<T> param;
+	}
 
-        public T getValue() {
-            return param.getValue();
-        }
-    }
+	@Test
+	@DisplayName("Testa response de erro com Struct")
+	public void testErrorStructResponse() throws Exception {
+		String xml = "<methodResponse><fault><value><struct><member><name>faultCode</name><value><int>500</int></value></member><member><name>faultString</name><value><string>Internal Server Error</string></value></member></struct></value></fault></methodResponse>";
+		JAXBContext context = JAXBContext.newInstance(XmlRpcResponse.class);
+		Unmarshaller unmarshaller = context.createUnmarshaller();
+		XmlRpcResponse<Map.Entry<?, ?>[]> response = (XmlRpcResponse<Map.Entry<?, ?>[]>) unmarshaller.unmarshal(new StringReader(xml));
+		Map<String, String> map = Arrays.stream(response.getValue())
+				.collect(Collectors.toMap(
+						entry -> entry.getKey().toString(),
+						entry -> entry.getValue().toString()
+				));
 
-    private static class Param<T> {
-        @XmlElement
-        private Value<T> value;
-
-        public T getValue() {
-            return value.getValue();
-        }
-    }
-
-    private static class Value<T> {
-        @XmlElement(name = "string")
-        private String stringValue;
-
-        @XmlElement(name = "int")
-        private Integer intValue;
-
-        @XmlElement(name = "i4")
-        private Integer i4Value;
-
-        @XmlElement(name = "boolean")
-        private Boolean booleanValue;
-
-        @XmlElement(name = "struct")
-        private Struct structValue;
-
-        @XmlElement(name = "array")
-        private Array<T> arrayValue;
-
-        public T getValue() {
-            if (stringValue != null) {
-                return (T) stringValue;
-            } else if (intValue != null) {
-                return (T) intValue;
-            } else if (i4Value != null) {
-                return (T) i4Value;
-            } else if (booleanValue != null) {
-                return (T) booleanValue;
-            } else if (structValue != null) {
-
-                List<Map.Entry<?, ?>> entries = new ArrayList<>();
-                for (Member member : structValue.members) {
-                    entries.add(new AbstractMap.SimpleEntry<>(member.name, member.value.getValue()));
-                }
-                return (T) entries.toArray(new Map.Entry<?, ?>[0]);
-            } else if (arrayValue != null) {
-                return (T) arrayValue.data.getValues();
-            } else {
-                throw new XmlRpcException("Invalid XML-RPC response: missing value element");
-            }
-        }
-    }
-
-    public static class Struct {
-
-        public Struct() {
-            // Construtor vazio
-        }
-
-        @XmlElement(name = "member")
-        private Member[] members;
-
-        public Object getValue(String name) {
-            for (Member member : members) {
-                if (member.name.equals(name)) {
-                    return member.value.getValue();
-                }
-            }
-            throw new XmlRpcException("Invalid XML-RPC response: missing value for member " + name);
-        }
-    }
-
-    private static class Member {
-        @XmlElement
-        private String name;
-
-        @XmlElement
-        private Value<Object> value;
-    }
-
-    private static class Array<T> {
-        @XmlElement(name = "data")
-        private Data<T> data;
-
-
-        public Object[] getValues() {
-            Object[] result = new Object[data.values.length];
-            for (int i = 0; i < data.values.length; i++) {
-                result[i] = data.values[i].getValue();
-            }
-            return result;
-        }
-    }
-
-    private static class Data<T> {
-        @XmlElement(name = "value")
-        private Value<T>[] values;
-
-        public T[] getValues() {
-            T[] result = (T[]) new Object[values.length];
-            for (int i = 0; i < values.length; i++) {
-                result[i] = values[i].getValue();
-            }
-            return result;
-        }
-    }
-
-    private static class Fault {
-        @XmlElement(name = "value")
-        private Value<Struct> value;
-
-        public int getCode() {
-            return (int) value.getValue().getValue("faultCode");
-        }
-
-        public String getMessage() {
-            return (String) value.getValue().getValue("faultString");
-        }
-    }
-
-    public static class XmlRpcException extends RuntimeException {
-        public XmlRpcException(String message) {
-            super(message);
-        }
-    }
-
-    public static class XmlRpcFaultException extends XmlRpcException {
-        private final Fault fault;
-
-        public XmlRpcFaultException(Fault fault) {
-            super(fault.getMessage());
-            this.fault = fault;
-        }
-
-        public int getCode() {
-            return fault.getCode();
-        }
-
-        public String getMessage() {
-            return fault.getMessage();
-        }
-    }
-}
+		assertEquals("500", map.get("faultCode"));
+		assertEquals("Internal Server Error", map.get("faultString"));
+	}
