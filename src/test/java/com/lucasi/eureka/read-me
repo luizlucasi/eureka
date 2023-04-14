@@ -1,1 +1,22 @@
 
+ static bool ValidateXmlAgainstXsd(string xmlPath, string xsdPath) {
+        // Carregando o esquema XSD
+        XmlSchemaSet schemas = new XmlSchemaSet();
+        schemas.Add("", xsdPath);
+
+        // Criando as configurações de validação
+        XmlReaderSettings settings = new XmlReaderSettings();
+        settings.ValidationType = ValidationType.Schema;
+        settings.Schemas = schemas;
+        settings.ValidationEventHandler += ValidationEventHandler;
+
+        // Lendo o arquivo XML e validando em relação ao esquema XSD
+        bool isValid = true;
+        using (XmlReader reader = XmlReader.Create(xmlPath, settings)) {
+            while (reader.Read()) {
+                // Lendo o arquivo XML
+            }
+        }
+
+        return isValid;
+    }
