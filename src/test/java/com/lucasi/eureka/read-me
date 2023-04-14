@@ -1,22 +1,19 @@
 
- static bool ValidateXmlAgainstXsd(string xmlPath, string xsdPath) {
-        // Carregando o esquema XSD
-        XmlSchemaSet schemas = new XmlSchemaSet();
-        schemas.Add("", xsdPath);
+public static void main(String[] args) {
 
-        // Criando as configurações de validação
-        XmlReaderSettings settings = new XmlReaderSettings();
-        settings.ValidationType = ValidationType.Schema;
-        settings.Schemas = schemas;
-        settings.ValidationEventHandler += ValidationEventHandler;
+        String topicName = "meu-topico";
+        String xmlString = "<root><elemento>conteúdo</elemento></root>";
 
-        // Lendo o arquivo XML e validando em relação ao esquema XSD
-        bool isValid = true;
-        using (XmlReader reader = XmlReader.Create(xmlPath, settings)) {
-            while (reader.Read()) {
-                // Lendo o arquivo XML
-            }
-        }
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "localhost:9092");
+        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        return isValid;
+        Producer<String, String> producer = new KafkaProducer<>(props);
+
+        ProducerRecord<String, String> record = new ProducerRecord<>(topicName, xmlString);
+
+        producer.send(record);
+
+        producer.close();
     }
