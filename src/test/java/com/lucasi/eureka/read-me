@@ -5,28 +5,6 @@ public class KafkaConsumerOffsetReset {
 
     public static void main(String[] args) {
 
-        String topicName = "meu_topico";
-        String groupId = "meu_grupo";
-
-        Properties props = new Properties();
-        props.put("bootstrap.servers", "localhost:9092");
-        props.put("group.id", groupId);
-        props.put("enable.auto.commit", "false");
-        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-       props.put("sasl.mechanism", "PLAIN");
-        props.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='" + apiKey + "' password='" + apiSecret + "';");
-        props.put("api.key", apiKey);
-        props.put("api.secret", apiSecret);
-
-
-        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
-        consumer.subscribe(Arrays.asList(topicName));
-        consumer.poll(Duration.ofMillis(100)); // Aguarda por um segundo até que o grupo de consumidores esteja atribuído
-
-        // Definir o offset para o último disponível
-        consumer.seekToEnd(consumer.assignment());
-
-        consumer.close();
+      
     }
 }
