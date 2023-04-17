@@ -14,9 +14,10 @@ public class KafkaConsumerOffsetReset {
         props.put("enable.auto.commit", "false");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-         props.put("security.protocol", "SASL_SSL");
-        props.put("sasl.mechanism", "PLAIN");
-        props.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='" + username + "' password='" + password + "';");
+       props.put("sasl.mechanism", "PLAIN");
+        props.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='" + apiKey + "' password='" + apiSecret + "';");
+        props.put("api.key", apiKey);
+        props.put("api.secret", apiSecret);
 
 
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
